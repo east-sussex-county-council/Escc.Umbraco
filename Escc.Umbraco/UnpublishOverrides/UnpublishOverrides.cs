@@ -1,0 +1,208 @@
+﻿using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Hosting;
+using Umbraco.Core;
+using Umbraco.Core.Models;
+using Umbraco.Core.Services;
+using Umbraco.Web;
+using Umbraco.Web.Models.ContentEditing;
+using Umbraco.Web.Security;
+
+namespace Escc.Umbraco.UnpublishOverrides
+{
+    class UnpublishOverrides
+    {
+        // ContentTypes
+        public static IEnumerable<UnpublishOverridesContentTypeElement> ContentTypeList { get { return ContentTypes; }}
+        private static readonly List<UnpublishOverridesContentTypeElement> ContentTypes = new List<UnpublishOverridesContentTypeElement>();
+
+        // Paths
+        public static IEnumerable<UnpublishOverridesPathElement> PathList { get { return Paths; }}
+        private static readonly List<UnpublishOverridesPathElement> Paths = new List<UnpublishOverridesPathElement>();
+
+        /// <summary>
+        /// Class Constructor.
+        /// </summary>
+        static UnpublishOverrides()
+        {
+            GetContentTypes();
+            GetPaths();
+        }
+
+        /// <summary>
+        /// Check if an override exists
+        /// </summary>
+        /// <param name="contentItem">Content Item to check</param>
+        /// <returns>True if an override exists</returns>
+        public static bool CheckOverride(IContent contentItem)
+        {
+            if (contentItem == null) return false;
+
+            // Check for a ContentType override
+            if (DocTypeOverride(contentItem.ContentType.Alias, contentItem.Level.ToString())) return true;
+
+            // Check for an override based on the Url
+            if (UrlOverride(GetNodeUrl(contentItem))) return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Used where IContent is not available
+        /// (SendAsync in WebApiHandler)
+        /// </summary>
+        /// <param name="contentItem">Content Item to Check</param>
+        /// <returns>True if an override exists</returns>
+        public static bool CheckOverride(ContentItemDisplay contentItem)
+        {
+            var contentService = new ContentService();
+            var content = contentService.GetById(contentItem.Key);
+
+            return CheckOverride(content);
+        }
+
+        private static bool UrlOverride(string pagePath)
+        {
+            // If a page path was not passed, return false (no override)
+            if (string.IsNullOrEmpty(pagePath)) return false;
+
+            // Look for the specific Url in the overrides list
+            if (Paths.Any(n => n.Name == pagePath)) return true;
+
+            // ================================================================
+            // pagePath may be a child of an override Url
+            // E.g.
+    		// <add name="/educationandlearning/schools/" children="" />
+		    // <add name="/educationandlearning/schools/findingaschool/" children="*" />
+            // 
+            // pagePath = /educationandlearning/schools/findingaschool/mynewpage
+            //
+            // Second item is the most specific, find it by ordering the Paths by the number of '/' characters in the string
+            // ================================================================
+            var entry = Paths.Where(n => pagePath.StartsWith(n.Name)).OrderBy(c => c.Name.Count(f => f == '/')).FirstOrDefault();
+
+            // No override(s) found
+            if (entry == null) return false;
+
+            // The override applies to all children too, so return true
+            if (entry.Children == "*") return true;
+
+            // All other tests failed, so return false (no override)
+            return false;
+        }
+
+        private static string GetNodeUrl(IContent node)
+        {
+            // Make sure we have a current Umbraco Context
+            if (UmbracoContext.Current == null)
+            {
+                var dummyContext = new HttpContextWrapper(new HttpContext(new SimpleWorkerRequest("/", string.Empty, new StringWriter())));
+                UmbracoContext.EnsureContext(
+                    dummyContext,
+                    ApplicationContext.Current,
+                    new WebSecurity(dummyContext, ApplicationContext.Current),
+                    false);
+            }
+            var helper = new UmbracoHelper(UmbracoContext.Current);
+
+            var entityUrl = helper.Url(node.Id);
+
+            if (!string.IsNullOrEmpty(entityUrl) && entityUrl != "#") return entityUrl;
+
+            // Just need the Url of the parent node...
+            entityUrl = helper.Url(node.ParentId);
+            if (!entityUrl.EndsWith("/"))
+            {
+                entityUrl += "/";
+            }
+
+            // Then add the current node name
+            var nodeName = node.Name;
+            var urlName = node.GetValue<string>("umbracoUrlName");
+            if (!string.IsNullOrEmpty(urlName))
+            {
+                nodeName = urlName;
+            }
+
+            nodeName = umbraco.cms.helpers.url.FormatUrl(nodeName);
+            entityUrl = string.Format("{0}{1}/", entityUrl, nodeName);
+
+            return entityUrl;
+        }
+
+        private static bool DocTypeOverride(string doctypeAlias, string templateLevel)
+        {
+            // If a template name was not passed, return false (no override)
+            if (string.IsNullOrEmpty(doctypeAlias)) return false;
+
+            // Look for the template name in the overrides list
+            var contenttype = ContentTypeList.FirstOrDefault(n => n.Name == doctypeAlias);
+
+            // If template not found then return false (no override)
+            if (contenttype == null) return false;
+
+            // If a specific level was not provided, then the override applies at any level
+            if (string.IsNullOrEmpty(templateLevel)) return true;
+
+            // If the template override applies at a specific level
+            if (contenttype.Level != "*")
+            {
+                return contenttype.Level == templateLevel;
+            }
+
+            // Template name found and applies at all levels
+            return true;
+        }
+
+        private static void GetContentTypes()
+        {
+            var connectionManagerDataSection = ConfigurationManager.GetSection(UnpublishOverridesSection.SectionName) as UnpublishOverridesSection;
+            if (connectionManagerDataSection != null)
+            {
+                foreach (UnpublishOverridesContentTypeElement templateElement in connectionManagerDataSection.ContentTypes)
+                {
+                    var template = new UnpublishOverridesContentTypeElement { Name = templateElement.Name, Level = templateElement.Level };
+                    AddTemplate(template);
+                }
+            }
+        }
+
+        private static void AddTemplate(UnpublishOverridesContentTypeElement templateElement)
+        {
+            if (templateElement == null)
+                return;
+
+            if (!ContentTypes.Contains(templateElement))
+                ContentTypes.Add(templateElement);
+        }
+
+        private static void GetPaths()
+        {
+            var connectionManagerDataSection = ConfigurationManager.GetSection(UnpublishOverridesSection.SectionName) as UnpublishOverridesSection;
+            if (connectionManagerDataSection != null)
+            {
+                foreach (UnpublishOverridesPathElement pathElement in connectionManagerDataSection.Paths)
+                {
+                    var path = new UnpublishOverridesPathElement
+                    {
+                        Name = pathElement.Name,
+                        Children = pathElement.Children
+                    };
+                    AddPath(path);
+                }
+            }
+        }
+
+        private static void AddPath(UnpublishOverridesPathElement pathElement)
+        {
+            if (pathElement == null)
+                return;
+
+            if (!Paths.Contains(pathElement))
+                Paths.Add(pathElement);
+        }
+    }
+}
