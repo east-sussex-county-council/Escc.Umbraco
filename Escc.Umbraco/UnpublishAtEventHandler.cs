@@ -57,8 +57,7 @@ namespace Escc.Umbraco
                         if (UnpublishOverrides.UnpublishOverrides.CheckOverride(entity))
                         {
                             // Date not allowed because there is an override
-                            entity.ChangePublishedState(PublishedState.Unpublished);
-                            sender.UnPublish(entity, 0);
+                            entity.ChangePublishedState(PublishedState.Saved);
                             e.Cancel = true;
                             continue;
                         }
@@ -70,8 +69,7 @@ namespace Escc.Umbraco
                         }
 
                         // validation failed
-                        entity.ChangePublishedState(PublishedState.Unpublished);
-                        sender.UnPublish(entity, 0);
+                        entity.ChangePublishedState(PublishedState.Saved);
                         e.Cancel = true;
                     }
                     else
@@ -84,8 +82,7 @@ namespace Escc.Umbraco
                         }
 
                         // Date is required as no override exists
-                        entity.ChangePublishedState(PublishedState.Unpublished);
-                        sender.UnPublish(entity, 0);
+                        entity.ChangePublishedState(PublishedState.Saved);
                         e.Cancel = true;
                     }
 

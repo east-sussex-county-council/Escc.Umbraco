@@ -64,6 +64,11 @@ namespace Escc.Umbraco.UnpublishOverrides
             return CheckOverride(content);
         }
 
+        /// <summary>
+        /// Check for and process an override based on the page Url
+        /// </summary>
+        /// <param name="pagePath">The Url to check</param>
+        /// <returns>True if an override exists</returns>
         private static bool UrlOverride(string pagePath)
         {
             // If a page path was not passed, return false (no override)
@@ -82,7 +87,7 @@ namespace Escc.Umbraco.UnpublishOverrides
             //
             // Second item is the most specific, find it by ordering the Paths by the number of '/' characters in the string
             // ================================================================
-            var entry = Paths.Where(n => pagePath.StartsWith(n.Name)).OrderBy(c => c.Name.Count(f => f == '/')).FirstOrDefault();
+            var entry = Paths.Where(n => pagePath.StartsWith(n.Name)).OrderByDescending(c => c.Name.Count(f => f == '/')).FirstOrDefault();
 
             // No override(s) found
             if (entry == null) return false;
@@ -94,6 +99,11 @@ namespace Escc.Umbraco.UnpublishOverrides
             return false;
         }
 
+        /// <summary>
+        /// Get or construct the node Url
+        /// </summary>
+        /// <param name="node">Node to process</param>
+        /// <returns>Node Url</returns>
         private static string GetNodeUrl(IContent node)
         {
             // Make sure we have a current Umbraco Context
@@ -133,6 +143,12 @@ namespace Escc.Umbraco.UnpublishOverrides
             return entityUrl;
         }
 
+        /// <summary>
+        /// Check for and process an override based on the page Doc Type
+        /// </summary>
+        /// <param name="doctypeAlias">Doc Type to check</param>
+        /// <param name="templateLevel">Optional level to check at</param>
+        /// <returns>True if an override exists</returns>
         private static bool DocTypeOverride(string doctypeAlias, string templateLevel)
         {
             // If a template name was not passed, return false (no override)
@@ -188,7 +204,7 @@ namespace Escc.Umbraco.UnpublishOverrides
                 {
                     var path = new UnpublishOverridesPathElement
                     {
-                        Name = pathElement.Name,
+                        Name = pathElement.Name.ToLower(),
                         Children = pathElement.Children
                     };
                     AddPath(path);
