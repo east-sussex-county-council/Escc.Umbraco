@@ -248,6 +248,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Caching\IHttpCachingService.cs" />
+    <Compile Include="ExamineEventHandler.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Media\MediaHelper.cs" />
     <Compile Include="Media\MediaValues.cs" />
