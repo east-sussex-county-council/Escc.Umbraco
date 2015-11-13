@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,11 +8,14 @@ using System.Web;
 using System.Web.Hosting;
 using Examine;
 using umbraco;
+using umbraco.cms.businesslogic.datatype;
 using Umbraco.Core;
+using Umbraco.Core.Models;
 using Umbraco.Core.Logging;
 using Umbraco.Web;
 using Umbraco.Web.Security;
 using UmbracoExamine;
+using umbraco.cms.businesslogic.web;
 
 namespace Escc.Umbraco
 {
@@ -87,29 +91,52 @@ namespace Escc.Umbraco
             //const string regexExp = "<a.* href=\"(/.*?)\".*>(.*?)</a>";
             var regex = new Regex(LinkMatchPattern);
 
+
+            // Format as JSON:
+            // {
+            //    "Description 1": {"Nodes":[ 18839 ]},
+            //    "Introductory text": {"Nodes":[ 18839 , 18885 ]}
+            // }
+
             var linkedNodes = new List<string>();
 
             // Look through each content field on the node
             foreach (var fld in e.Fields)
             {
+                var nodeList = new List<string>();
+                var fldAlias = fld.Key.Replace("__Raw_", "");
+                var fieldName = library.GetPropertyTypeName(e.Fields["nodeTypeAlias"], fldAlias);
+                
                 // Find all matches (links) in the content field
                 var matches = regex.Matches(fld.Value);
 
-                // Check each of the matches
+                // Check each of the matches and build up a list of Node Ids
                 foreach (Match match in matches)
                 {
-                    var m = match.Groups[1].ToString();
+                    var extLink = match.Groups[1].ToString();
 
                     // Convert to the node Id
-                    var nodeId = GetNodeId(m);
+                    var nodeId = GetNodeId(extLink);
 
                     // Add the Node Id to the list, if it isn't empty
-                    if (!string.IsNullOrEmpty(nodeId)) linkedNodes.Add(nodeId);
+                    if (!string.IsNullOrEmpty(nodeId))
+                    {
+                        nodeList.Add(nodeId);
+                    }
+                }
+
+                // Add field and list of nodes to return list
+                if (nodeList.Any())
+                {
+                    var nodeListString = string.Join(" , ", nodeList);
+                    // A space is needed before and after the node Ids to allow Examine searches to work easily
+                    var nodeAndField = string.Format("\"{0}\": {{\"Nodes\":[ {1} ]}}", fieldName, nodeListString);
+                    linkedNodes.Add(nodeAndField);
                 }
             }
 
-            // return a space separated string of distinct node Ids
-            return String.Join(" ", linkedNodes.Distinct().Select(x => x.ToString()).ToArray());
+            // return data in JSON format, or an empty string if no links found
+            return linkedNodes.Any() ? string.Format("{{{0}}}", string.Join(",", linkedNodes)) : string.Empty;
         }
 
         private string GetNodeId(string linkString)
