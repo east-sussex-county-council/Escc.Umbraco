@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,14 +8,11 @@ using System.Web;
 using System.Web.Hosting;
 using Examine;
 using umbraco;
-using umbraco.cms.businesslogic.datatype;
 using Umbraco.Core;
-using Umbraco.Core.Models;
 using Umbraco.Core.Logging;
 using Umbraco.Web;
 using Umbraco.Web.Security;
 using UmbracoExamine;
-using umbraco.cms.businesslogic.web;
 
 namespace Escc.Umbraco
 {
@@ -35,7 +32,11 @@ namespace Escc.Umbraco
 
         public void OnApplicationStarted(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
-            ExamineManager.Instance.IndexProviderCollection[NodeLinksIndexer].GatheringNodeData += NodeLinksIndexer_GatheringNodeData;
+            // This only applies to the admin / backoffice
+            if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["IsUmbracoBackOffice"]))
+            {
+                ExamineManager.Instance.IndexProviderCollection[NodeLinksIndexer].GatheringNodeData += NodeLinksIndexer_GatheringNodeData;
+            }
         }
 
         private void NodeLinksIndexer_GatheringNodeData(object sender, IndexingNodeDataEventArgs e)
