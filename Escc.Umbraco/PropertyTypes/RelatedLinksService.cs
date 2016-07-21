@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AST.AzureBlobStorage.Helper;
 using AutoMapper;
 using Our.Umbraco.PropertyConverters.Models;
 using Umbraco.Core.Models;
@@ -38,7 +37,7 @@ namespace Escc.Umbraco.PropertyTypes
                 return new HtmlLink()
                 {
                     Text = relatedLink.Caption,
-                    Url = ContentHelper.TransformUrl(new Uri(relatedLink.Link, UriKind.RelativeOrAbsolute))
+                    Url = new Uri(relatedLink.Link, UriKind.RelativeOrAbsolute)
                 };
             }
             catch (UriFormatException)
