@@ -58,7 +58,7 @@ namespace Escc.Umbraco.UnpublishOverrides
         /// <returns>True if an override exists</returns>
         public static bool CheckOverride(ContentItemDisplay contentItem)
         {
-            var contentService = new ContentService();
+            var contentService = ApplicationContext.Current.Services.ContentService;
             var content = contentService.GetById(contentItem.Key);
 
             return CheckOverride(content);
