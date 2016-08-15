@@ -12,6 +12,13 @@ namespace Escc.Umbraco.UnpublishOverrides
         private const string ContentTypesCollectionName = "ContentTypes";
         private const string PathsCollectionName = "Paths";
 
+        [ConfigurationProperty("enabled", DefaultValue = "true", IsRequired = false)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { this["enabled"] = value; }
+        }
+
         [ConfigurationProperty(ContentTypesCollectionName)]
         [ConfigurationCollection(typeof(UnpublishOverridesContentTypesCollection), AddItemName = "add")]
         public UnpublishOverridesContentTypesCollection ContentTypes { get { return (UnpublishOverridesContentTypesCollection)base[ContentTypesCollectionName]; } }

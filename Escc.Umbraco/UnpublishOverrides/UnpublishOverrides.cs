@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace Escc.Umbraco.UnpublishOverrides
         public static IEnumerable<UnpublishOverridesPathElement> PathList { get { return Paths; }}
         private static readonly List<UnpublishOverridesPathElement> Paths = new List<UnpublishOverridesPathElement>();
 
+        public static bool IsEnabled { get { return CheckEnabled(); } }
+
         /// <summary>
         /// Class Constructor.
         /// </summary>
@@ -45,14 +48,13 @@ namespace Escc.Umbraco.UnpublishOverrides
             if (DocTypeOverride(contentItem.ContentType.Alias, contentItem.Level.ToString())) return true;
 
             // Check for an override based on the Url
-            if (UrlOverride(GetNodeUrl(contentItem))) return true;
+            if (UrlOverride(GetNodeUrl(contentItem).ToLower())) return true;
 
             return false;
         }
 
         /// <summary>
         /// Used where IContent is not available
-        /// (SendAsync in WebApiHandler)
         /// </summary>
         /// <param name="contentItem">Content Item to Check</param>
         /// <returns>True if an override exists</returns>
@@ -118,23 +120,20 @@ namespace Escc.Umbraco.UnpublishOverrides
             }
             var helper = new UmbracoHelper(UmbracoContext.Current);
 
-            var entityUrl = helper.Url(node.Id);
+            var entityUrl = helper.NiceUrl(node.Id);
 
             if (!string.IsNullOrEmpty(entityUrl) && entityUrl != "#") return entityUrl;
 
             // Just need the Url of the parent node...
             entityUrl = helper.Url(node.ParentId);
-            if (!entityUrl.EndsWith("/"))
-            {
-                entityUrl += "/";
-            }
+            if (entityUrl == "#") entityUrl = string.Empty;
+            if (!entityUrl.EndsWith("/")) entityUrl += "/";
 
             // Then add the current node name
             var nodeName = node.Name;
-            var urlName = node.GetValue<string>("umbracoUrlName");
-            if (!string.IsNullOrEmpty(urlName))
+            if (node.HasProperty("umbracoUrlName") && !string.IsNullOrEmpty(node.GetValue<string>("umbracoUrlName")))
             {
-                nodeName = urlName;
+                nodeName = node.GetValue<string>("umbracoUrlName");
             }
 
             nodeName = umbraco.cms.helpers.url.FormatUrl(nodeName);
@@ -219,6 +218,13 @@ namespace Escc.Umbraco.UnpublishOverrides
 
             if (!Paths.Contains(pathElement))
                 Paths.Add(pathElement);
+        }
+
+        private static bool CheckEnabled()
+        {
+            var connectionManagerDataSection = ConfigurationManager.GetSection(UnpublishOverridesSection.SectionName) as UnpublishOverridesSection;
+
+            return connectionManagerDataSection.Enabled;
         }
     }
 }

@@ -20,11 +20,11 @@ namespace Escc.Umbraco
 
         public void OnApplicationStarting(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
-            // Used to override the standard "3rd party" message with our own
-            GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiHandler()); 
-
-            // Check that node is OK to publish
-            ContentService.Publishing += ContentService_Publishing;
+            if (UnpublishOverrides.UnpublishOverrides.IsEnabled)
+            {
+                // Check that node is OK to publish
+                ContentService.Publishing += ContentService_Publishing;
+            }
         }
 
         public void OnApplicationStarted(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
@@ -53,47 +53,42 @@ namespace Escc.Umbraco
 
                     if (entity.ExpireDate.HasValue)
                     {
-                        // Check there isn't an override
+                        // Check for override
                         if (UnpublishOverrides.UnpublishOverrides.CheckOverride(entity))
                         {
                             // Date not allowed because there is an override
-                            entity.ChangePublishedState(PublishedState.Saved);
-                            e.Cancel = true;
-                            continue;
+                            e.CancelOperation(new EventMessage("Publish Failed", "You cannot enter an 'Unpublish at' date for this page", EventMessageType.Error));
                         }
-
-                        // Ensure date is valid
-                        if (entity.ExpireDate >= DateTime.Now.AddDays(1).AddMinutes(-10) && entity.ExpireDate <= maxDate)
+                        
+                        // Date cannot be less than 1 day in the future
+                        else if (entity.ExpireDate < DateTime.Now.AddDays(1).AddMinutes(-10))
                         {
-                            continue;
+                            e.CancelOperation(new EventMessage("Publish Failed", "The 'Unpublish at' date must be at least 1 day in the future", EventMessageType.Error));
                         }
 
-                        // validation failed
-                        entity.ChangePublishedState(PublishedState.Saved);
-                        e.Cancel = true;
+                        // Date cannot be more than 6 months in the future
+                        else if (entity.ExpireDate > maxDate)
+                        {
+                            e.CancelOperation(new EventMessage("Publish Failed", "The 'Unpublish at' date cannot be more than 6 months in the future", EventMessageType.Error));
+                        }
                     }
                     else
                     {
-                        // Date is not allowed if there is an override
-                        if (UnpublishOverrides.UnpublishOverrides.CheckOverride(entity))
+                        // Check for no override
+                        if (!UnpublishOverrides.UnpublishOverrides.CheckOverride(entity))
                         {
-                            // No date is OK because there is an override
-                            continue;
+                            // Date is required as no override exists
+                            e.CancelOperation(new EventMessage("Publish Failed", "The 'Unpublish at' date is required", EventMessageType.Error));                            
                         }
 
-                        // Date is required as no override exists
-                        entity.ChangePublishedState(PublishedState.Saved);
-                        e.Cancel = true;
+                        // No date is OK because there is an override
                     }
-
-                    // Won't work until V7.3.0!! See http://issues.umbraco.org/issue/U4-5927
-                    // As a work-around, messages are currently being displayed in SendAsync in WebApiHandler.cs
-                    // e.Messages.Add(new EventMessage("Save Failed", "Unpublish date is not valid", EventMessageType.Error));
                 }
             }
             catch (Exception ex)
             {
                 LogHelper.Error<UnpublishAtEventHandler>("Error checking page expiry date.", ex);
+                e.CancelOperation(new EventMessage("Publish Failed", ex.Message, EventMessageType.Error));
             }
         }
     }

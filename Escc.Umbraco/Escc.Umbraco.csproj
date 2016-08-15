@@ -281,7 +281,6 @@
     <Compile Include="UnpublishOverrides\UnpublishOverridesSection.cs" />
     <Compile Include="UnpublishOverrides\UnpublishOverridesContentTypeElement.cs" />
     <Compile Include="UnpublishOverrides\UnpublishOverridesContentTypesCollection.cs" />
-    <Compile Include="WebApiHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />
