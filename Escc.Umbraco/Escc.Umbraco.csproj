@@ -286,6 +286,8 @@
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Web.config.uninstall.xdt" />
+    <None Include="Web.config.install.xdt" />
     <None Include="app.config" />
     <None Include="app.example.config" />
     <None Include="packages.config" />

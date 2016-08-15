@@ -224,6 +224,8 @@ namespace Escc.Umbraco.UnpublishOverrides
         {
             var connectionManagerDataSection = ConfigurationManager.GetSection(UnpublishOverridesSection.SectionName) as UnpublishOverridesSection;
 
+            if (connectionManagerDataSection == null) return false;
+
             return connectionManagerDataSection.Enabled;
         }
     }
