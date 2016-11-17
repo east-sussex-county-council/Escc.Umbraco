@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Web.Http;
 using Umbraco.Core;
 using Umbraco.Core.Events;
 using Umbraco.Core.Logging;
@@ -39,6 +38,8 @@ namespace Escc.Umbraco
             {
                 // Get default time period. Expiry time will be the same as the node creation time.
                 var maxDate = DateTime.Now.AddMonths(6);
+                // Convert the date time to a string for event messages
+                var dateString = maxDate.ToString("dd MMMM yyyy h:mm:sstt").ToLower();
 
                 // Check if there is an override for this content element. 
                 // If not, check that the unPublish date is within allowed date range.
@@ -59,7 +60,7 @@ namespace Escc.Umbraco
                             // Date not allowed because there is an override
                             e.CancelOperation(new EventMessage("Publish Failed", "You cannot enter an 'Unpublish at' date for this page", EventMessageType.Error));
                         }
-                        
+
                         // Date cannot be less than 1 day in the future
                         else if (entity.ExpireDate < DateTime.Now.AddDays(1).AddMinutes(-10))
                         {
@@ -69,7 +70,9 @@ namespace Escc.Umbraco
                         // Date cannot be more than 6 months in the future
                         else if (entity.ExpireDate > maxDate)
                         {
-                            e.CancelOperation(new EventMessage("Publish Failed", "The 'Unpublish at' date cannot be more than 6 months in the future", EventMessageType.Error));
+                            // Default the date to the maximum allowed and continue publishing.
+                            entity.ExpireDate = maxDate;
+                            e.Messages.Add(new EventMessage("Warning", "The 'Unpublish at' date cannot be more than 6 months in the future. The date has been set to: " + dateString + ". You can refresh the page to see the new date.", EventMessageType.Warning));
                         }
                     }
                     else
@@ -78,7 +81,9 @@ namespace Escc.Umbraco
                         if (!UnpublishOverrides.UnpublishOverrides.CheckOverride(entity))
                         {
                             // Date is required as no override exists
-                            e.CancelOperation(new EventMessage("Publish Failed", "The 'Unpublish at' date is required", EventMessageType.Error));                            
+                            // As no date has been provided and there is no override, default the date to the maximum allowed and continue publishing.
+                            entity.ExpireDate = maxDate;
+                            e.Messages.Add(new EventMessage("Warning", "The 'Unpublish at' date is a required field. The date has been set to " + dateString + ". You can refresh the page to see the new date.", EventMessageType.Warning));
                         }
 
                         // No date is OK because there is an override
