@@ -39,7 +39,8 @@ namespace Escc.Umbraco
                 // Get default time period. Expiry time will be the same as the node creation time.
                 var maxDate = DateTime.Now.AddMonths(6);
                 // Convert the date time to a string for event messages
-                var dateString = maxDate.ToString("dd MMMM yyyy h:mm:sstt").ToLower();
+                var dateString = maxDate.ToString("dd MMMM yyyy");
+                dateString += maxDate.ToString(" h:mm:sstt").ToLower();
 
                 // Check if there is an override for this content element. 
                 // If not, check that the unPublish date is within allowed date range.
