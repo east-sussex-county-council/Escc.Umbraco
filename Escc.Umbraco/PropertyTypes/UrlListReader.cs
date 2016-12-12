@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Umbraco.Core.Models;
 using Umbraco.Web;
 
@@ -65,7 +66,7 @@ namespace Escc.Umbraco.PropertyTypes
             var urlList = content.GetPropertyValue<string>(propertyAlias);
             if (!String.IsNullOrWhiteSpace(urlList))
             {
-                var urlLines = urlList.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+                var urlLines = Regex.Replace(Regex.Replace(urlList, "\r", String.Empty), "\n", Environment.NewLine).Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var urlLine in urlLines)
                 {
                     try
