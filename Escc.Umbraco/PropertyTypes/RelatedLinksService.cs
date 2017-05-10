@@ -12,6 +12,22 @@ namespace Escc.Umbraco.PropertyTypes
     /// </summary>
     public class RelatedLinksService : IRelatedLinksService
     {
+        private readonly IUrlTransformer[] _urlTransformers;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RelatedLinksService"/> class.
+        /// </summary>
+        public RelatedLinksService() { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RelatedLinksService"/> class.
+        /// </summary>
+        /// <param name="urlTransformers">The URL transformers.</param>
+        public RelatedLinksService(params IUrlTransformer[] urlTransformers)
+        {
+            _urlTransformers = urlTransformers;
+        }
+
         /// <summary>
         /// Reads a collection of links from an Umbraco related links property.
         /// </summary>
@@ -30,15 +46,25 @@ namespace Escc.Umbraco.PropertyTypes
             return links;
         }
 
-        private static HtmlLink LinkViewModelFromRelatedLink(RelatedLink relatedLink)
+        private HtmlLink LinkViewModelFromRelatedLink(RelatedLink relatedLink)
         {
             try
             {
-                return new HtmlLink()
+                var link = new HtmlLink()
                 {
                     Text = relatedLink.Caption,
                     Url = new Uri(relatedLink.Link, UriKind.RelativeOrAbsolute)
                 };
+
+                if (_urlTransformers != null)
+                {
+                    foreach (var transformer in _urlTransformers)
+                    {
+                        link.Url = transformer.TransformUrl(link.Url);
+                    }
+                }
+
+                return link;
             }
             catch (UriFormatException)
             {

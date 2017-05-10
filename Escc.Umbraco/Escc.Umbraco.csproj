@@ -264,6 +264,7 @@
     <Compile Include="Media\MediaHelper.cs" />
     <Compile Include="Media\MediaValues.cs" />
     <Compile Include="PropertyTypes\HtmlLink.cs" />
+    <Compile Include="PropertyTypes\IUrlTransformer.cs" />
     <Compile Include="PropertyTypes\IRelatedLinksService.cs" />
     <Compile Include="PropertyTypes\IUrlListReader.cs" />
     <Compile Include="PropertyTypes\RelatedLinksService.cs" />
