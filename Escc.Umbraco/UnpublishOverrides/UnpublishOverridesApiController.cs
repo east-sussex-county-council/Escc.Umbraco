@@ -31,13 +31,24 @@ namespace Escc.Umbraco.UnpublishOverrides
                 if (node.HasPublishedVersion)
                 {
                     SetOrRemoveUnpublishDate(contentService, node);
-
-                    var descendants = node.Descendants().Where(descendant => descendant.HasPublishedVersion);
-                    foreach (var descendant in descendants)
-                    {
-                        SetOrRemoveUnpublishDate(contentService, descendant);
-                    }
+                    SetOrRemoveUnpublishDateForChildNodes(contentService, node);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sets or removes the unpublish date for child nodes.
+        /// </summary>
+        /// <param name="contentService">The content service.</param>
+        /// <param name="node">The node.</param>
+        /// <remarks>Use recursion rather than .Descendants() to avoid generating a long-running query that times out when there's a lot of content</remarks>
+        private void SetOrRemoveUnpublishDateForChildNodes(IContentService contentService, IContent node)
+        {
+            var children = node.Children().Where(child => child.HasPublishedVersion);
+            foreach (var child in children)
+            {
+                SetOrRemoveUnpublishDate(contentService, child);
+                SetOrRemoveUnpublishDateForChildNodes(contentService, child);
             }
         }
 
