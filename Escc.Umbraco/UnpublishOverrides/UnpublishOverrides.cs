@@ -67,6 +67,24 @@ namespace Escc.Umbraco.UnpublishOverrides
         }
 
         /// <summary>
+        /// Used where IContent is not available
+        /// </summary>
+        /// <param name="contentItem">Content Item to Check</param>
+        /// <returns>True if an override exists</returns>
+        public static bool CheckOverride(IPublishedContent contentItem)
+        {
+            if (contentItem == null) return false;
+
+            // Check for a ContentType override
+            if (DocTypeOverride(contentItem.ContentType.Alias, contentItem.Level.ToString())) return true;
+
+            // Check for an override based on the Url
+            if (UrlOverride(contentItem.Url.ToLower())) return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Check for and process an override based on the page Url
         /// </summary>
         /// <param name="pagePath">The Url to check</param>
