@@ -58,11 +58,19 @@ namespace Escc.Umbraco
                     foreach (var mediaNodeId in idList)
                     {
                         var mediaItem = uMediaSyncHelper.mediaService.GetById(mediaNodeId);
-                        if (Validation.ValidMediaName(mediaItem)) continue;
 
-                        // Cancel the save
-                        var errMsg = string.Format("{0}: {1} is not a valid name, you must change the name before the image can be used.", propertyType.Name, mediaItem.Name);
-                        e.CancelOperation(new EventMessage("Invalid Media", errMsg, EventMessageType.Error));
+                        if (mediaItem.ContentType.Alias.ToLower() == "image")
+                        {
+                            if (Validation.ValidMediaName(mediaItem)) continue;
+
+                            // Cancel the save
+                            var errMsg = string.Format("{0}: {1} is not a valid name, you must change the name before the image can be used.", propertyType.Name, mediaItem.Name);
+                            e.CancelOperation(new EventMessage("Invalid Media", errMsg, EventMessageType.Error));
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                 }
             }
