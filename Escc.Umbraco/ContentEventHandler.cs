@@ -61,10 +61,11 @@ namespace Escc.Umbraco
 
                         if (mediaItem.ContentType.Alias.ToLower() == "image")
                         {
-                            if (Validation.ValidMediaName(mediaItem)) continue;
+                            var Validate = Validation.ValidMediaName(mediaItem);
+                            if (Validate.Item1) continue;
 
                             // Cancel the save
-                            var errMsg = string.Format("{0}: {1} is not a valid name, you must change the name before the image can be used.", propertyType.Name, mediaItem.Name);
+                            var errMsg = string.Format("{0}", Validate.Item2);
                             e.CancelOperation(new EventMessage("Invalid Media", errMsg, EventMessageType.Error));
                         }
                         else

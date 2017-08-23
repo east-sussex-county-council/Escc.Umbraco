@@ -34,11 +34,11 @@ namespace Escc.Umbraco
 
             foreach (var mediaItem in imageMediaItems)
             {
-                // Check if media item name is valid
-                if (Validation.ValidMediaName(mediaItem)) continue;
+                var Validate = Validation.ValidMediaName(mediaItem);
+                if (Validate.Item1) continue;
 
-                // media item name is invalid, so add a message
-                var errMsg = string.Format("{0} is not a valid name, you must change the name before the image can be used.", mediaItem.Name);
+                // Cancel the save
+                var errMsg = string.Format("{0}", Validate.Item2);
 
                 // Show as a warning message, as the save is not cancelled
                 e.Messages.Add(new EventMessage("Invalid Name", errMsg, EventMessageType.Warning));

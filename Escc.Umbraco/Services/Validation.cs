@@ -18,18 +18,30 @@ namespace Escc.Umbraco.Services
         /// <returns>
         /// True if media item name is valid
         /// </returns>
-        public static bool ValidMediaName(IMedia mediaItem)
+        public static Tuple<bool,string> ValidMediaName(IMedia mediaItem)
         {
             var ValidName = true;
+            var ErrorMessage = "";
 
-            // Get lowercase version of the actual filename and the containing Media item
-            var fileName = mediaItem.GetValue<string>("umbracoFile").ToLowerInvariant();
-            var mediaName = mediaItem.Name.ToLowerInvariant();
+            var fileName = "";
+            var mediaName = "";
 
+            try
+            {
+                // Get lowercase version of the actual filename and the containing Media item
+                fileName = mediaItem.GetValue<string>("umbracoFile").ToLowerInvariant();
+            }
+            catch (Exception)
+            {
+                ErrorMessage = string.Format("The Media item '{0}' doesn't contain a media file such as an image. You must add a file to the media item before it can be used.", mediaItem.Name);
+            }
+
+            mediaName = mediaItem.Name.ToLowerInvariant();
             // Check that the media item name is not the same as the file name
             if (fileName.EndsWith(mediaName, true, null))
             {
                 ValidName = false;
+                ErrorMessage = string.Format("The Media item '{0}' has the same name as its file. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.");
             }
 
             // Check that filename does not end with a file extension
@@ -41,9 +53,11 @@ namespace Escc.Umbraco.Services
             if (extensionsList.Any(f => mediaName.Contains(f)))
             {
                 ValidName = false;
+                ErrorMessage = string.Format("The Media item '{0}' contains a file extension in its name. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.");
             }
 
-            return ValidName;
+            var Result = new Tuple<bool, string>(ValidName, ErrorMessage);
+            return Result;
         }
     }
 }
