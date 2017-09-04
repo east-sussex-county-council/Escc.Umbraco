@@ -34,14 +34,34 @@ namespace Escc.Umbraco
 
             foreach (var mediaItem in imageMediaItems)
             {
-                var Validate = Validation.ValidMediaName(mediaItem);
-                if (Validate.Item1) continue;
+                var ValidateMediaItem = Validation.ValidMediaItem(mediaItem);
+                if (ValidateMediaItem.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Media", string.Format("#The save has not been cancelled, However {0}", ValidateMediaItem.Item2), EventMessageType.Warning));
+                    break;
+                }
 
-                // Cancel the save
-                var errMsg = string.Format("{0}", Validate.Item2);
+                var ValidateForImage = Validation.CheckMediaForImage(mediaItem);
+                if (ValidateForImage.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Media Item", string.Format("#The save has not been cancelled, However {0}", ValidateForImage.Item2), EventMessageType.Warning));
+                    break;
+                }
 
-                // Show as a warning message, as the save is not cancelled
-                e.Messages.Add(new EventMessage("Invalid Name", errMsg, EventMessageType.Warning));
+                var ValidateName = Validation.ValidMediaName(mediaItem);
+                if (ValidateName.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Name", string.Format("#The save has not been cancelled, However {0}", ValidateName.Item2), EventMessageType.Warning));
+                    break;
+                }
+
+                var ValidateForFileExtensions = Validation.CheckMediaForFileExtensions(mediaItem);
+                if (ValidateForFileExtensions.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Name", string.Format("#The save has not been cancelled, However {0}", ValidateForFileExtensions.Item2), EventMessageType.Warning));
+                    break;
+                }
+
             }
         }
     }
