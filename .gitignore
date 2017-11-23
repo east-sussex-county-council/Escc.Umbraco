@@ -34,3 +34,4 @@ packages/
 *.GhostDoc.xml
 App_Plugins
 config
+.vs

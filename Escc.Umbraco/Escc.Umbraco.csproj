@@ -311,6 +311,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App_Plugins\Escc.Umbraco.DataTypes.MediaUsage\package.manifest" />
+    <None Include="build-nuget.cmd" />
     <None Include="config\uMediaSync.config" />
     <None Include="Escc.Umbraco.nuspec" />
     <None Include="Web.config.uninstall.xdt" />
@@ -333,9 +334,7 @@
     <Error Condition="!Exists('..\packages\Escc.Umbraco.MediaSync.1.3.12\build\Escc.Umbraco.MediaSync.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Escc.Umbraco.MediaSync.1.3.12\build\Escc.Umbraco.MediaSync.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
- nuget pack "..\\..\\Escc.Umbraco.nuspec"
-)</PostBuildEvent>
+    <PostBuildEvent>if "$(ConfigurationName)"=="Release" "$(ProjectDir)build-nuget.cmd" $(ProjectDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
