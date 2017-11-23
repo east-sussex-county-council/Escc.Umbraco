@@ -32,3 +32,5 @@ _ReSharper*/
 [Ss]cripts*/
 packages/
 *.GhostDoc.xml
+App_Plugins
+config

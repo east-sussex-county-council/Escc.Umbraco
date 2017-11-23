@@ -11,7 +11,7 @@ namespace Escc.Umbraco
 {
     class ContentEventHandler : IApplicationEventHandler
     {
-        private readonly IMediaSyncConfigurationProvider _config = new XmlConfigurationProvider();
+        private readonly IMediaSyncConfigurationProvider _config = new MediaSyncConfigurationFromXml();
         private IEnumerable<IRelatedMediaIdProvider> _mediaIdProviders;
 
         public void OnApplicationInitialized(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
