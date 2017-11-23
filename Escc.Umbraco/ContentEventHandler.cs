@@ -61,12 +61,30 @@ namespace Escc.Umbraco
 
                         if (mediaItem.ContentType.Alias.ToLower() == "image")
                         {
-                            var Validate = Validation.ValidMediaName(mediaItem);
-                            if (Validate.Item1) continue;
+                            var ValidateMediaItem = Validation.ValidMediaItem(mediaItem);
+                            if(ValidateMediaItem.Item1 == false)
+                            {
+                                e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateMediaItem.Item2), EventMessageType.Error));
+                            }
 
-                            // Cancel the save
-                            var errMsg = string.Format("{0}", Validate.Item2);
-                            e.CancelOperation(new EventMessage("Invalid Media", errMsg, EventMessageType.Error));
+                            var ValidateForImage = Validation.CheckMediaForImage(mediaItem);
+                            if (ValidateForImage.Item1 == false)
+                            {
+                                e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateForImage.Item2), EventMessageType.Error));
+                                break;
+                            }
+
+                            var ValidateName = Validation.ValidMediaName(mediaItem);
+                            if (ValidateName.Item1 == false)
+                            {
+                                e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateName.Item2), EventMessageType.Error));
+                            }
+
+                            var ValidateForFileExtensions = Validation.CheckMediaForFileExtensions(mediaItem);
+                            if (ValidateForFileExtensions.Item1 == false)
+                            {
+                                e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateForFileExtensions.Item2), EventMessageType.Error));
+                            }
                         }
                         else
                         {
