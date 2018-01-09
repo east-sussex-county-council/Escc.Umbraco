@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
-using Our.Umbraco.PropertyConverters.Models;
 using Umbraco.Core.Models;
 using Umbraco.Web;
+using Umbraco.Web.Models;
 
 namespace Escc.Umbraco.PropertyTypes
 {
@@ -38,7 +38,7 @@ namespace Escc.Umbraco.PropertyTypes
         {
             var links = new List<HtmlLink>();
             var propertyValue = content.GetPropertyValue<RelatedLinks>(propertyAlias);
-            if (propertyValue != null && propertyValue.PropertyData != "[]")
+            if (propertyValue != null)
             {
                 propertyValue.Each(relatedLink => links.Add(LinkViewModelFromRelatedLink(relatedLink)));
             }
