@@ -275,14 +275,6 @@
     <Compile Include="PropertyTypes\UrlListReader.cs" />
     <Compile Include="InternalLinks\TrackInternalLinksEventHandler.cs" />
     <Compile Include="Services\Validation.cs" />
-    <Compile Include="UnpublishAtEventHandler.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesApiController.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverrides.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesPathElement.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesPathsCollection.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesSection.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesContentTypeElement.cs" />
-    <Compile Include="UnpublishOverrides\UnpublishOverridesContentTypesCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />
@@ -292,8 +284,6 @@
     <None Include="build-nuget.cmd" />
     <None Include="config\uMediaSync.config" />
     <None Include="Escc.Umbraco.nuspec" />
-    <None Include="Web.config.uninstall.xdt" />
-    <None Include="Web.config.install.xdt" />
     <None Include="app.config" />
     <None Include="app.example.config" />
     <None Include="packages.config" />
