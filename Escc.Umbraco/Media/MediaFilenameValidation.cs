@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Umbraco.Core.Events;
 using Umbraco.Core.Models;
 
-namespace Escc.Umbraco.Services
+namespace Escc.Umbraco.Media
 {
-    public class Validation
+    public class MediaFilenameValidation
     {
 
         public static Tuple<bool, string> ValidMediaItem(IMedia mediaItem)
@@ -25,12 +25,12 @@ namespace Escc.Umbraco.Services
             catch (Exception)
             {
                 Valid = false;
-                ErrorMessage = string.Format("the media item '{0}' doesn't contain a media file such as an image. You must add a file to the media item before it can be used.", mediaItem.Name);
+                ErrorMessage = string.Format("The media item '{0}' doesn't contain a media file such as an image. You must add a file to the media item before it can be used.", mediaItem.Name);
             }
             if(fileName == "")
             {
                 Valid = false;
-                ErrorMessage = string.Format("the media item '{0}' doesn't contain a media file such as an image. You must add a file to the media item before it can be used.", mediaItem.Name);
+                ErrorMessage = string.Format("The media item '{0}' doesn't contain a media file such as an image. You must add a file to the media item before it can be used.", mediaItem.Name);
             }
 
             var Result = new Tuple<bool, string>(Valid, ErrorMessage);
@@ -58,7 +58,7 @@ namespace Escc.Umbraco.Services
             if (fileName.EndsWith(mediaName, true, null))
             {
                 Valid = false;
-                ErrorMessage = string.Format("the media item '{0}' has the same name as its file. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.", mediaItem.Name);
+                ErrorMessage = string.Format("The media item '{0}' has the same name as its file. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.", mediaItem.Name);
             }
 
             var Result = new Tuple<bool, string>(Valid, ErrorMessage);
@@ -79,7 +79,7 @@ namespace Escc.Umbraco.Services
             if (extensionsList.Any(f => mediaName.Contains(f)))
             {
                 Valid = false;
-                ErrorMessage = string.Format("the media item '{0}' contains a file extension in its name. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.", mediaItem.Name);
+                ErrorMessage = string.Format("The media item '{0}' contains a file extension in its name. You need to change the title before you can use it, It needs to be a description of what the image shows. This makes the image accessible to people who can't see it.", mediaItem.Name);
             }
 
             var Result = new Tuple<bool, string>(Valid, ErrorMessage);
@@ -100,7 +100,7 @@ namespace Escc.Umbraco.Services
             if (!extensionsList.Any(f => fileName.Contains(f)))
             {
                 Valid = false;
-                ErrorMessage = string.Format("the media item '{0}' doesn't appear to be an image. You will need to change the media item to an image before it can be used. If you didn't intend to upload as an image then try deleting the media and uploading as a file. ", mediaItem.Name);
+                ErrorMessage = string.Format("The media item '{0}' doesn't appear to be an image. You will need to change the media item to an image before it can be used. If you didn't intend to upload as an image then try deleting the media and uploading as a file. ", mediaItem.Name);
             }
 
             var Result = new Tuple<bool, string>(Valid, ErrorMessage);

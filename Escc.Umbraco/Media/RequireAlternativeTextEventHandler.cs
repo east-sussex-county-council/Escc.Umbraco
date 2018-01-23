@@ -1,5 +1,4 @@
 ﻿using Escc.Umbraco.MediaSync;
-using Escc.Umbraco.Services;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Core;
@@ -7,9 +6,9 @@ using Umbraco.Core.Events;
 using Umbraco.Core.Models;
 using Umbraco.Core.Services;
 
-namespace Escc.Umbraco
+namespace Escc.Umbraco.Media
 {
-    class ContentEventHandler : IApplicationEventHandler
+    class RequireAlternativeTextEventHandler : IApplicationEventHandler
     {
         private readonly IMediaSyncConfigurationProvider _config = new MediaSyncConfigurationFromXml();
         private IEnumerable<IRelatedMediaIdProvider> _mediaIdProviders;
@@ -21,6 +20,7 @@ namespace Escc.Umbraco
         public void OnApplicationStarting(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
             ContentService.Saving += ContentService_Saving;
+            MediaService.Saved += MediaService_Saved;
         }
 
         public void OnApplicationStarted(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
@@ -59,28 +59,28 @@ namespace Escc.Umbraco
                     {
                         var mediaItem = uMediaSyncHelper.mediaService.GetById(mediaNodeId);
 
-                        if (mediaItem.ContentType.Alias.ToLower() == "image")
+                        if (mediaItem != null && mediaItem.ContentType.Alias.ToLower() == "image")
                         {
-                            var ValidateMediaItem = Validation.ValidMediaItem(mediaItem);
+                            var ValidateMediaItem = MediaFilenameValidation.ValidMediaItem(mediaItem);
                             if(ValidateMediaItem.Item1 == false)
                             {
                                 e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateMediaItem.Item2), EventMessageType.Error));
                             }
 
-                            var ValidateForImage = Validation.CheckMediaForImage(mediaItem);
+                            var ValidateForImage = MediaFilenameValidation.CheckMediaForImage(mediaItem);
                             if (ValidateForImage.Item1 == false)
                             {
                                 e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateForImage.Item2), EventMessageType.Error));
                                 break;
                             }
 
-                            var ValidateName = Validation.ValidMediaName(mediaItem);
+                            var ValidateName = MediaFilenameValidation.ValidMediaName(mediaItem);
                             if (ValidateName.Item1 == false)
                             {
                                 e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateName.Item2), EventMessageType.Error));
                             }
 
-                            var ValidateForFileExtensions = Validation.CheckMediaForFileExtensions(mediaItem);
+                            var ValidateForFileExtensions = MediaFilenameValidation.CheckMediaForFileExtensions(mediaItem);
                             if (ValidateForFileExtensions.Item1 == false)
                             {
                                 e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateForFileExtensions.Item2), EventMessageType.Error));
@@ -92,6 +92,49 @@ namespace Escc.Umbraco
                         }
                     }
                 }
+            }
+        }
+        
+        /// <summary>
+        /// Check that the Media item name does not match the filename, or have a common image extension.
+        /// Because the media item name is used as the image alt tag.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MediaService_Saved(IMediaService sender, SaveEventArgs<IMedia> e)
+        {
+            var imageMediaItems = e.SavedEntities.Where(x => x.ContentType.Alias.ToLower() == "image");
+
+            foreach (var mediaItem in imageMediaItems)
+            {
+                var ValidateMediaItem = MediaFilenameValidation.ValidMediaItem(mediaItem);
+                if (ValidateMediaItem.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Media", string.Format("The media was saved. However {0}", ValidateMediaItem.Item2), EventMessageType.Warning));
+                    break;
+                }
+
+                var ValidateForImage = MediaFilenameValidation.CheckMediaForImage(mediaItem);
+                if (ValidateForImage.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Media Item", string.Format("The media was saved. However {0}", ValidateForImage.Item2), EventMessageType.Warning));
+                    break;
+                }
+
+                var ValidateName = MediaFilenameValidation.ValidMediaName(mediaItem);
+                if (ValidateName.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Name", string.Format("The media was saved. However {0}", ValidateName.Item2), EventMessageType.Warning));
+                    break;
+                }
+
+                var ValidateForFileExtensions = MediaFilenameValidation.CheckMediaForFileExtensions(mediaItem);
+                if (ValidateForFileExtensions.Item1 == false)
+                {
+                    e.Messages.Add(new EventMessage("Invalid Name", string.Format("The media was saved. However {0}", ValidateForFileExtensions.Item2), EventMessageType.Warning));
+                    break;
+                }
+
             }
         }
     }
