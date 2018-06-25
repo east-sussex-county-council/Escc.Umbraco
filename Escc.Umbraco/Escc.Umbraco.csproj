@@ -255,6 +255,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Caching\ExpiryDateFromPropertyValue.cs" />
+    <Compile Include="Caching\IExpiryDateSource.cs" />
     <Compile Include="Caching\IHttpCachingService.cs" />
     <Compile Include="Media\RequireAlternativeTextEventHandler.cs" />
     <Compile Include="GlobalSuppressions.cs" />
@@ -267,7 +269,6 @@
     <Compile Include="PropertyTypes\RelatedLinksService.cs" />
     <Compile Include="PublishingDateBugFixHandler.cs" />
     <Compile Include="Caching\CacheFreshness.cs" />
-    <Compile Include="PublishingDatesEventHandler.cs" />
     <Compile Include="Caching\HttpCachingService.cs" />
     <Compile Include="PropertyTypes\Image.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

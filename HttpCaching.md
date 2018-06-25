@@ -5,12 +5,12 @@ The `HttpCachingService` lets you set HTTP caching headers from your controller.
 
 An example:
 
-	var expiryProperties = new List<string>() { "someExpiryDatePropertyAlias" };
+	var expiryProperty = new ExpiryDateFromPropertyValue(model.Content, "someExpiryDatePropertyAlias");
 	var defaultTimeToCache = new TimeSpan(1,0,0,0);
 
-    HttpCachingService.SetHttpCacheHeadersFromUmbracoContent(model.Content, UmbracoContext.Current.InPreviewMode, Response.Cache, expiryProperties, defaultTimeToCache);
+    HttpCachingService.SetHttpCacheHeadersFromUmbracoContent(model.Content, UmbracoContext.Current.InPreviewMode, Response.Cache, new IExpiryDateSource[] { expiryProperty }, defaultTimeToCache);
 
-It needs to check the expiry date of the page, but this can only be done by hitting the Umbraco database. To avoid doing this on every page view, add an extra property to your document type using `Date Picker with time` and the alias `unpublishAt`. The expiry date is copied to this property automatically, where it can then be retrieved from the Umbraco cache.
+It needs to check the expiry date of the page, which is not available as a property of an `IPublishedContent`, so you will need another implementation of `IExpiryDateSource`. You should use a solution such as Examine to avoid doing this by hitting the Umbraco database on every page view - see the [Escc.Umbraco.Expiry](https://github.com/east-sussex-county-council/Escc.Umbraco.Expiry) project for an implementation you can use.
 
 You can also add a `Dropdown` property with the alias `cache`. The `HttpCachingService` looks for hard-coded values of `5 minutes`, `10 minutes`, `30 minutes` or `1 hour` to allow any page to override the default cache time with its own setting. This is useful for pages which are particularly time-sensitive.
 

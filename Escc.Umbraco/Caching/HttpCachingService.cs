@@ -19,24 +19,23 @@ namespace Escc.Umbraco.Caching
         /// <param name="content">The Umbraco published content node.</param>
         /// <param name="isPreview">if set to <c>true</c> Umbraco is in preview mode.</param>
         /// <param name="cachePolicy">The cache policy.</param>
-        /// <param name="expiryDateFieldAliases">Aliases of any additional fields containing expiry dates. Expiry of the page itself is taken care of by default.</param>
+        /// <param name="cacheExpiryDates">Additional dates which should cause the cache to expire.</param>
         /// <param name="defaultCachePeriodInSeconds">The default cache period in seconds.</param>
-        public void SetHttpCacheHeadersFromUmbracoContent(IPublishedContent content, bool isPreview, HttpCachePolicyBase cachePolicy, IList<string> expiryDateFieldAliases = null, int defaultCachePeriodInSeconds = 86400)
+        public void SetHttpCacheHeadersFromUmbracoContent(IPublishedContent content, bool isPreview, HttpCachePolicyBase cachePolicy, IEnumerable<IExpiryDateSource> cacheExpiryDates = null, int defaultCachePeriodInSeconds = 86400)
         {
             // Default to 24 hours, but allow calling code or an Umbraco property on specific pages to override this
             var defaultCachePeriod = new TimeSpan(0, 0, 0, defaultCachePeriodInSeconds);
             var pageCachePeriod = ParseTimeSpan(content.GetPropertyValue<string>("cache"));
             var cachePeriod = (pageCachePeriod == TimeSpan.Zero) ? defaultCachePeriod : pageCachePeriod;
 
-            // Use well-known unpublishAt property alias set by PublishingDatesEventHandler, but allow other expiry fields to be specified too
-            if (expiryDateFieldAliases == null) expiryDateFieldAliases = new List<string>();
-            if (!expiryDateFieldAliases.Contains("unpublishAt")) expiryDateFieldAliases.Add("unpublishAt");
             var expiryDates = new List<DateTime>();
-
-            foreach (var fieldAlias in expiryDateFieldAliases)
+            foreach (var dateSource in cacheExpiryDates)
             {
-                var expiryDate = content.GetPropertyValue<DateTime>(fieldAlias);
-                if (expiryDate != DateTime.MinValue) expiryDates.Add(expiryDate);
+                if (dateSource != null)
+                {
+                    var expiryDate = dateSource.ExpiryDate;
+                    if (expiryDate.HasValue) expiryDates.Add(expiryDate.Value);
+                }
             }
 
             SetHttpCacheHeaders(DateTime.UtcNow,

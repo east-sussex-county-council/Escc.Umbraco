@@ -16,9 +16,9 @@ namespace Escc.Umbraco.Caching
         /// <param name="content">The Umbraco published content node.</param>
         /// <param name="isPreview">if set to <c>true</c> Umbraco is in preview mode.</param>
         /// <param name="cachePolicy">The cache policy.</param>
-        /// <param name="expiryDateFieldAliases">Aliases of any additional fields containing expiry dates. Expiry of the page itself is taken care of by default.</param>
+        /// <param name="cacheExpiryDates">Additional dates which should cause the cache to expire.</param>
         /// <param name="defaultCachePeriodInSeconds">The default cache period in seconds.</param>
-        void SetHttpCacheHeadersFromUmbracoContent(IPublishedContent content, bool isPreview, HttpCachePolicyBase cachePolicy, IList<string> expiryDateFieldAliases = null, int defaultCachePeriodInSeconds = 86400);
+        void SetHttpCacheHeadersFromUmbracoContent(IPublishedContent content, bool isPreview, HttpCachePolicyBase cachePolicy, IEnumerable<IExpiryDateSource> cacheExpiryDates = null, int defaultCachePeriodInSeconds = 86400);
 
         /// <summary>
         /// Works out how long to cache based on a default period and any expiry dates, relative to a start date.
