@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Umbraco.Core.Models;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
@@ -39,7 +40,7 @@ namespace Escc.Umbraco.Media
         /// <returns></returns>
         public bool CanReadPropertyType(PropertyType propertyType)
         {
-            return _propertyEditorAlises.Contains(propertyType.PropertyEditorAlias.ToUpperInvariant());
+            return _propertyEditorAlises.Contains(propertyType.PropertyEditorAlias, StringComparer.InvariantCultureIgnoreCase);
         }
 
         /// <summary>

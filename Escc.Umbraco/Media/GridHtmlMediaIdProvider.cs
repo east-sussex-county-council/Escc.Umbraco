@@ -41,7 +41,7 @@ namespace Escc.Umbraco.Media
         /// <returns></returns>
         public bool CanReadPropertyType(PropertyType propertyType)
         {
-            return _propertyEditorAlises.Contains(propertyType.PropertyEditorAlias.ToUpperInvariant());
+            return _propertyEditorAlises.Contains(propertyType.PropertyEditorAlias, StringComparer.InvariantCultureIgnoreCase);
         }
 
         /// <summary>

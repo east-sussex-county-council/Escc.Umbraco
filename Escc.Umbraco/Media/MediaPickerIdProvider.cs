@@ -5,11 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using umbraco.cms.businesslogic.packager;
 using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Services;
-using umbraco.presentation.actions;
 
 namespace Escc.Umbraco.Media
 {
@@ -18,7 +16,7 @@ namespace Escc.Umbraco.Media
     /// </summary>
     public class MediaPickerIdProvider : IMediaIdProvider
     {
-        private readonly List<string> _propertyEditorAlises = new List<string>();
+        private readonly List<string> _propertyEditorAliases = new List<string>();
         private readonly IDataTypeService _dataTypeService;
 
         /// <summary>
@@ -33,7 +31,7 @@ namespace Escc.Umbraco.Media
                 throw new ArgumentNullException(nameof(propertyEditorAliases));
             }
 
-            _propertyEditorAlises.AddRange(propertyEditorAliases);
+            _propertyEditorAliases.AddRange(propertyEditorAliases);
             _dataTypeService = dataTypeService;
         }
 
@@ -44,7 +42,7 @@ namespace Escc.Umbraco.Media
         /// <returns></returns>
         public bool CanReadPropertyType(PropertyType propertyType)
         {
-            var canRead = _propertyEditorAlises.Contains(propertyType.PropertyEditorAlias.ToUpperInvariant());
+            var canRead = _propertyEditorAliases.Contains(propertyType.PropertyEditorAlias, StringComparer.InvariantCultureIgnoreCase);
             if (canRead)
             {
                 // A multi-node tree picker can be set to read media nodes or other types of node. Check for the media node
