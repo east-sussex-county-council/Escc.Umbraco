@@ -1,5 +1,6 @@
-﻿using Escc.Umbraco.MediaSync;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Linq;
 using Umbraco.Core;
 using Umbraco.Core.Events;
@@ -10,8 +11,7 @@ namespace Escc.Umbraco.Media
 {
     class RequireAlternativeTextEventHandler : IApplicationEventHandler
     {
-        private readonly IMediaSyncConfigurationProvider _config = new MediaSyncConfigurationFromXml();
-        private IEnumerable<IRelatedMediaIdProvider> _mediaIdProviders;
+        private IList<IMediaIdProvider> _mediaIdProviders;
 
         public void OnApplicationInitialized(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
@@ -37,12 +37,7 @@ namespace Escc.Umbraco.Media
         {
             if (_mediaIdProviders == null)
             {
-                _mediaIdProviders = new List<IRelatedMediaIdProvider>() {
-                        new MediaPickerIdProvider(_config, ApplicationContext.Current.Services.DataTypeService),
-                        new HtmlMediaIdProvider(_config),
-                        new RelatedLinksMediaIdProvider(_config),
-                        new UrlMediaIdProvider(_config)
-                    };
+                _mediaIdProviders = new MediaIdProvidersFromConfig(ApplicationContext.Current.Services.MediaService, ApplicationContext.Current.Services.DataTypeService).LoadProviders();
             }
 
             foreach (var contentItem in e.SavedEntities)
@@ -57,12 +52,12 @@ namespace Escc.Umbraco.Media
 
                     foreach (var mediaNodeId in idList)
                     {
-                        var mediaItem = uMediaSyncHelper.mediaService.GetById(mediaNodeId);
+                        var mediaItem = ApplicationContext.Current.Services.MediaService.GetById(mediaNodeId);
 
                         if (mediaItem != null && mediaItem.ContentType.Alias.ToLower() == "image")
                         {
                             var ValidateMediaItem = MediaFilenameValidation.ValidMediaItem(mediaItem);
-                            if(ValidateMediaItem.Item1 == false)
+                            if (ValidateMediaItem.Item1 == false)
                             {
                                 e.CancelOperation(new EventMessage("Invalid Media", string.Format("{0}", ValidateMediaItem.Item2), EventMessageType.Error));
                             }
@@ -94,7 +89,7 @@ namespace Escc.Umbraco.Media
                 }
             }
         }
-        
+
         /// <summary>
         /// Check that the Media item name does not match the filename, or have a common image extension.
         /// Because the media item name is used as the image alt tag.
