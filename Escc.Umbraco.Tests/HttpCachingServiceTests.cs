@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Web;
 using Escc.Umbraco.Caching;
+using Moq;
 using NUnit.Framework;
+using Umbraco.Core.Models;
+using Umbraco.Web;
 
 namespace Escc.Umbraco.Tests
 {
@@ -71,6 +75,42 @@ namespace Escc.Umbraco.Tests
 
             Assert.AreEqual(freshness.FreshFor, _defaultCachePeriod);
             Assert.AreEqual(freshness.FreshUntil, _startDate.Add(_defaultCachePeriod));
+        }
+
+        [Test]
+        public void PreviewModeSetsCacheabilityToNoCache()
+        {
+            var content = new Mock<IPublishedContent>();
+            var prop = new Mock<IPublishedProperty>();
+            content.Setup(x => x.GetProperty(It.IsAny<string>())).Returns(prop.Object);
+            var cache = new Mock<HttpCachePolicyBase>();
+            cache.CallBase = true;
+            cache.Setup(x => x.SetCacheability(It.IsAny<HttpCacheability>()));
+            cache.Setup(x => x.AppendCacheExtension(It.IsAny<string>()));
+            cache.Setup(x => x.SetMaxAge(It.IsAny<TimeSpan>()));
+
+            var service = new HttpCachingService();
+            service.SetHttpCacheHeadersFromUmbracoContent(content.Object, true, cache.Object);
+
+            cache.Verify(x => x.SetCacheability(HttpCacheability.NoCache));
+        }
+
+        [Test]
+        public void NoPreviewModeSetsCacheabilityToPrivate()
+        {
+            var content = new Mock<IPublishedContent>();
+            var prop = new Mock<IPublishedProperty>();
+            content.Setup(x => x.GetProperty(It.IsAny<string>())).Returns(prop.Object);
+            var cache = new Mock<HttpCachePolicyBase>();
+            cache.CallBase = true;
+            cache.Setup(x => x.SetCacheability(It.IsAny<HttpCacheability>()));
+            cache.Setup(x => x.SetExpires(It.IsAny<DateTime>()));
+            cache.Setup(x => x.SetMaxAge(It.IsAny<TimeSpan>()));
+
+            var service = new HttpCachingService();
+            service.SetHttpCacheHeadersFromUmbracoContent(content.Object, false, cache.Object);
+
+            cache.Verify(x => x.SetCacheability(HttpCacheability.Private));
         }
     }
 }

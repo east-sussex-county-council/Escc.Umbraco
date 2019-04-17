@@ -25,16 +25,19 @@ namespace Escc.Umbraco.Caching
         {
             // Default to 24 hours, but allow calling code or an Umbraco property on specific pages to override this
             var defaultCachePeriod = new TimeSpan(0, 0, 0, defaultCachePeriodInSeconds);
-            var pageCachePeriod = ParseTimeSpan(content.GetPropertyValue<string>("cache"));
+            var pageCachePeriod = ParseTimeSpan(content.GetProperty("cache").Value?.ToString());
             var cachePeriod = (pageCachePeriod == TimeSpan.Zero) ? defaultCachePeriod : pageCachePeriod;
 
             var expiryDates = new List<DateTime>();
-            foreach (var dateSource in cacheExpiryDates)
+            if (cacheExpiryDates != null)
             {
-                if (dateSource != null)
+                foreach (var dateSource in cacheExpiryDates)
                 {
-                    var expiryDate = dateSource.ExpiryDate;
-                    if (expiryDate.HasValue) expiryDates.Add(expiryDate.Value);
+                    if (dateSource != null)
+                    {
+                        var expiryDate = dateSource.ExpiryDate;
+                        if (expiryDate.HasValue) expiryDates.Add(expiryDate.Value);
+                    }
                 }
             }
 
@@ -128,16 +131,19 @@ namespace Escc.Umbraco.Caching
         /// <returns></returns>
         private static TimeSpan ParseTimeSpan(string text)
         {
-            switch (text)
+            if (!string.IsNullOrEmpty(text))
             {
-                case "5 minutes":
-                    return new TimeSpan(0, 5, 0);
-                case "10 minutes":
-                    return new TimeSpan(0, 10, 0);
-                case "30 minutes":
-                    return new TimeSpan(0, 30, 0);
-                case "1 hour":
-                    return new TimeSpan(1, 0, 0);
+                switch (text)
+                {
+                    case "5 minutes":
+                        return new TimeSpan(0, 5, 0);
+                    case "10 minutes":
+                        return new TimeSpan(0, 10, 0);
+                    case "30 minutes":
+                        return new TimeSpan(0, 30, 0);
+                    case "1 hour":
+                        return new TimeSpan(1, 0, 0);
+                }
             }
             return TimeSpan.Zero;
         }
