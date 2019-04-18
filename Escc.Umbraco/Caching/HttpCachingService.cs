@@ -25,7 +25,7 @@ namespace Escc.Umbraco.Caching
         {
             // Default to 24 hours, but allow calling code or an Umbraco property on specific pages to override this
             var defaultCachePeriod = new TimeSpan(0, 0, 0, defaultCachePeriodInSeconds);
-            var pageCachePeriod = ParseTimeSpan(content.GetProperty("cache").Value?.ToString());
+            var pageCachePeriod = ParseTimeSpan(content.GetProperty("cache")?.Value?.ToString());
             var cachePeriod = (pageCachePeriod == TimeSpan.Zero) ? defaultCachePeriod : pageCachePeriod;
 
             var expiryDates = new List<DateTime>();
